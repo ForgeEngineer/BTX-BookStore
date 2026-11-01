@@ -28,7 +28,6 @@ public class BookTests
         var book = CreateValidBook();
 
         Assert.NotEqual(Guid.Empty, book.Id);
-        Assert.NotEqual(Guid.Empty, book.ConcurrencyStamp);
         Assert.Equal("Dune", book.Title);
         Assert.Equal(Genre.SciFi, book.Genre);
         Assert.Equal(19.99m, book.Price);
@@ -57,10 +56,9 @@ public class BookTests
     }
 
     [Fact]
-    public void UpdateStoreDetails_ChangesFieldsAndRotatesConcurrencyStamp()
+    public void UpdateStoreDetails_ChangesFields()
     {
         var book = CreateValidBook();
-        var originalStamp = book.ConcurrencyStamp;
 
         book.UpdateStoreDetails(Genre.Fiction, 25m, 10, "A desert planet epic.");
 
@@ -68,7 +66,6 @@ public class BookTests
         Assert.Equal(25m, book.Price);
         Assert.Equal(10, book.Stock);
         Assert.Equal("A desert planet epic.", book.Description);
-        Assert.NotEqual(originalStamp, book.ConcurrencyStamp);
     }
 
     [Fact]

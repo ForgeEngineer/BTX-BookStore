@@ -2,11 +2,6 @@ using BookStore.Domain.Common;
 
 namespace BookStore.Domain.Books;
 
-/// <summary>
-/// A book owned by the store. Catalog fields (title, author, ISBN, etc.) are captured
-/// from Open Library once at creation and are immutable afterwards; store fields
-/// (genre, price, stock, description) are the only ones that can change.
-/// </summary>
 public sealed class Book
 {
     public const int TitleMaxLength = 500;
@@ -18,7 +13,6 @@ public sealed class Book
 
     public Guid Id { get; private set; }
 
-    // Catalog fields — sourced from Open Library at add-time.
     public string Title { get; private set; } = string.Empty;
     public string Author { get; private set; } = string.Empty;
     public string Isbn { get; private set; } = string.Empty;
@@ -26,7 +20,6 @@ public sealed class Book
     public string? CoverUrl { get; private set; }
     public string OpenLibraryKey { get; private set; } = string.Empty;
 
-    // Store fields — owned and editable by the store.
     public string? Description { get; private set; }
     public Genre Genre { get; private set; }
     public decimal Price { get; private set; }
@@ -34,10 +27,7 @@ public sealed class Book
 
     public DateTime CreatedAtUtc { get; private set; }
 
-    /// <summary>Optimistic concurrency token; rotated on every update.</summary>
-    public Guid ConcurrencyStamp { get; private set; }
-
-    private Book() { } // EF Core
+    private Book() { }
 
     public static Book Create(
         string title,
@@ -67,8 +57,7 @@ public sealed class Book
             Genre = genre,
             Price = price,
             Stock = stock,
-            CreatedAtUtc = createdAtUtc,
-            ConcurrencyStamp = Guid.NewGuid()
+            CreatedAtUtc = createdAtUtc
         };
     }
 
@@ -80,7 +69,6 @@ public sealed class Book
         Price = price;
         Stock = stock;
         Description = Optional(description, nameof(Description), DescriptionMaxLength);
-        ConcurrencyStamp = Guid.NewGuid();
     }
 
     private static void EnsureValidStoreDetails(Genre genre, decimal price, int stock)
