@@ -1,0 +1,78 @@
+<main class="p-4">
+  @if (store.error(); as error) {
+    <div class="flex items-center gap-4 mb-4">
+      <p-message severity="error">{{ error }}</p-message>
+      <p-button label="Retry" severity="secondary" size="small" (onClick)="store.load()" />
+    </div>
+  }
+
+  <div class="flex justify-end mb-4">
+    <p-button label="Add book" (onClick)="openDialog(null)" />
+  </div>
+
+  <p-table
+    [value]="store.books()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="store.pageSize()"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    [first]="first()"
+    [totalRecords]="store.totalCount()"
+    [loading]="store.loading()"
+    [sortField]="initialSortField"
+    [sortOrder]="initialSortOrder"
+    dataKey="id"
+    (onLazyLoad)="onLazyLoad($event)"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Cover</th>
+        <th pSortableColumn="title">Title <p-sortIcon field="title" /></th>
+        <th pSortableColumn="author">Author <p-sortIcon field="author" /></th>
+        <th pSortableColumn="publishedYear">Year <p-sortIcon field="publishedYear" /></th>
+        <th>Genre</th>
+        <th pSortableColumn="price">Price <p-sortIcon field="price" /></th>
+        <th pSortableColumn="stock">Stock <p-sortIcon field="stock" /></th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-book>
+      <tr>
+        <td>
+          @if (book.coverUrl) {
+            <img [src]="book.coverUrl" [alt]="book.title" class="w-8 h-12 object-cover" />
+          }
+        </td>
+        <td>{{ book.title }}</td>
+        <td>{{ book.author }}</td>
+        <td>{{ book.publishedYear }}</td>
+        <td>{{ book.genre }}</td>
+        <td>{{ book.price | currency }}</td>
+        <td>{{ book.stock }}</td>
+        <td>
+          <div class="flex gap-2">
+            <p-button label="Edit" size="small" [text]="true" (onClick)="openDialog(book)" />
+            <p-button
+              label="Delete"
+              severity="danger"
+              size="small"
+              [text]="true"
+              (onClick)="confirmDelete(book)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8">
+          @if (!store.loading() && !store.error()) {
+            No books found.
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <app-book-dialog [(visible)]="dialogVisible" [book]="dialogBook()" />
+</main>
