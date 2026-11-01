@@ -1,9 +1,14 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { Book, BookQuery, BookUpdate, NewBook, PagedResult } from '../domain/book';
 import { BookRepository } from '../domain/book.repository';
 import { API_URL } from './api-url';
+
+const toError = (response: HttpErrorResponse) =>
+  throwError(
+    () => new Error(response.error?.detail || response.error?.title || 'Something went wrong.'),
+  );
 
 @Injectable()
 export class HttpBookRepository implements BookRepository {
@@ -21,22 +26,22 @@ export class HttpBookRepository implements BookRepository {
       params = params.set('genre', query.genre);
     }
 
-    return this.http.get<PagedResult<Book>>(this.url, { params });
+    return this.http.get<PagedResult<Book>>(this.url, { params }).pipe(catchError(toError));
   }
 
   getBook(id: string): Observable<Book> {
-    return this.http.get<Book>(`${this.url}/${id}`);
+    return this.http.get<Book>(`${this.url}/${id}`).pipe(catchError(toError));
   }
 
   add(book: NewBook): Observable<Book> {
-    return this.http.post<Book>(this.url, book);
+    return this.http.post<Book>(this.url, book).pipe(catchError(toError));
   }
 
   update(id: string, book: BookUpdate): Observable<Book> {
-    return this.http.put<Book>(`${this.url}/${id}`, book);
+    return this.http.put<Book>(`${this.url}/${id}`, book).pipe(catchError(toError));
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.url}/${id}`);
+    return this.http.delete<void>(`${this.url}/${id}`).pipe(catchError(toError));
   }
 }
