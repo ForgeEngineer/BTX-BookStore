@@ -3,6 +3,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { of } from 'rxjs';
 import { App } from './app';
 import { BookRepository } from './domain/book.repository';
+import { CatalogRepository } from './domain/catalog.repository';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -11,6 +12,7 @@ describe('App', () => {
       providers: [
         MessageService,
         ConfirmationService,
+        { provide: CatalogRepository, useValue: {} },
         {
           provide: BookRepository,
           useValue: { getBooks: () => of({ items: [], page: 1, pageSize: 10, totalCount: 0 }) },

@@ -1,15 +1,16 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { BookStore } from '../../application/book-store';
 import { Book } from '../../domain/book';
+import { BookDialog } from '../book-dialog/book-dialog';
 
 @Component({
   selector: 'app-body',
-  imports: [CurrencyPipe, TableModule, Button, Message],
+  imports: [CurrencyPipe, TableModule, Button, Message, BookDialog],
   templateUrl: './body.html',
 })
 export class Body {
@@ -20,6 +21,13 @@ export class Body {
   protected readonly first = computed(() => (this.store.page() - 1) * this.store.pageSize());
   protected readonly initialSortField = this.store.sortField();
   protected readonly initialSortOrder = this.store.sortDesc() ? -1 : 1;
+  protected readonly dialogVisible = signal(false);
+  protected readonly dialogBook = signal<Book | null>(null);
+
+  protected openDialog(book: Book | null): void {
+    this.dialogBook.set(book);
+    this.dialogVisible.set(true);
+  }
 
   protected onLazyLoad(event: TableLazyLoadEvent): void {
     const rows = event.rows ?? this.store.pageSize();

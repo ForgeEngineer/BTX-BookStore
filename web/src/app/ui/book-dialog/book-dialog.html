@@ -1,0 +1,95 @@
+<p-dialog [(visible)]="visible" [header]="header()" [modal]="true" styleClass="w-full max-w-lg">
+  @if (step() === 'search') {
+    <div class="flex gap-2 mb-4">
+      <input
+        pInputText
+        class="flex-1"
+        placeholder="Search by title or author"
+        aria-label="Search"
+        [(ngModel)]="query"
+        (keyup.enter)="search()"
+      />
+      <p-button label="Search" [loading]="searching()" (onClick)="search()" />
+    </div>
+
+    @if (searchError(); as error) {
+      <p-message severity="error">{{ error }}</p-message>
+    }
+
+    @if (results(); as results) {
+      @if (results.length === 0) {
+        <p>No results found.</p>
+      } @else {
+        <ul class="flex flex-col gap-1">
+          @for (result of results; track result.openLibraryKey) {
+            <li>
+              <button
+                type="button"
+                class="flex items-center gap-3 w-full p-2 text-left cursor-pointer hover:bg-surface-100"
+                (click)="select(result)"
+              >
+                @if (result.coverUrl) {
+                  <img [src]="result.coverUrl" [alt]="result.title" class="w-8 h-12 object-cover" />
+                }
+                <span>
+                  <span class="block font-medium">{{ result.title }}</span>
+                  <span class="block text-sm">{{ result.author }} {{ result.publishedYear }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  } @else {
+    <div class="flex flex-col gap-4">
+      @if (current(); as current) {
+        <div>
+          <p class="font-medium">{{ current.title }}</p>
+          <p class="text-sm">{{ current.author }}</p>
+        </div>
+      }
+
+      <div class="flex flex-col gap-1">
+        <label for="genre">Genre</label>
+        <p-select
+          inputId="genre"
+          appendTo="body"
+          placeholder="Select a genre"
+          [options]="genres"
+          [(ngModel)]="genre"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="price">Price</label>
+        <p-inputnumber
+          inputId="price"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          fluid
+          [min]="0"
+          [(ngModel)]="price"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="stock">Stock</label>
+        <p-inputnumber inputId="stock" fluid [min]="0" [(ngModel)]="stock" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="description">Description</label>
+        <textarea pTextarea id="description" rows="4" [(ngModel)]="description"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        @if (!book()) {
+          <p-button label="Back" severity="secondary" (onClick)="back()" />
+        }
+        <p-button label="Save" [disabled]="!canSave()" [loading]="saving()" (onClick)="save()" />
+      </div>
+    </div>
+  }
+</p-dialog>
