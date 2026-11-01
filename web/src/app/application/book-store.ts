@@ -50,15 +50,11 @@ export class BookStore {
     this.load();
   }
 
-  setPage(page: number, pageSize: number): void {
+  setTable(page: number, pageSize: number, sortField: string, sortDesc: boolean): void {
     this.page.set(page);
     this.pageSize.set(pageSize);
-    this.load();
-  }
-
-  setSort(field: string, desc: boolean): void {
-    this.sortField.set(field);
-    this.sortDesc.set(desc);
+    this.sortField.set(sortField);
+    this.sortDesc.set(sortDesc);
     this.load();
   }
 
