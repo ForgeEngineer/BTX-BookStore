@@ -1,14 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 import { CatalogBook } from '../domain/book';
 import { CatalogRepository } from '../domain/catalog.repository';
+import { toError } from './api-error';
 import { API_URL } from './api-url';
-
-const toError = (response: HttpErrorResponse) =>
-  throwError(
-    () => new Error(response.error?.detail || response.error?.title || 'Something went wrong.'),
-  );
 
 @Injectable()
 export class HttpCatalogRepository implements CatalogRepository {

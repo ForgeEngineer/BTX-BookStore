@@ -71,6 +71,13 @@ export class BookStore {
   }
 
   remove(id: string): Observable<void> {
-    return this.repository.delete(id).pipe(tap(() => this.load()));
+    return this.repository.delete(id).pipe(
+      tap(() => {
+        if (this.books().length === 1 && this.page() > 1) {
+          this.page.update((page) => page - 1);
+        }
+        this.load();
+      }),
+    );
   }
 }

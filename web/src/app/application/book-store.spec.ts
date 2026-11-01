@@ -76,6 +76,16 @@ describe('BookStore', () => {
     expect(store.loading()).toBe(false);
   });
 
+  it('remove goes back one page when the current page would be empty', () => {
+    store.page.set(2);
+    store.books.set([book]);
+
+    store.remove(book.id).subscribe();
+
+    expect(store.page()).toBe(1);
+    expect(repository.lastQuery?.page).toBe(1);
+  });
+
   it('load sets error when the repository fails', () => {
     repository.result = throwError(() => new Error('Could not load books.'));
 

@@ -1,14 +1,10 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 import { Book, BookQuery, BookUpdate, NewBook, PagedResult } from '../domain/book';
 import { BookRepository } from '../domain/book.repository';
+import { toError } from './api-error';
 import { API_URL } from './api-url';
-
-const toError = (response: HttpErrorResponse) =>
-  throwError(
-    () => new Error(response.error?.detail || response.error?.title || 'Something went wrong.'),
-  );
 
 @Injectable()
 export class HttpBookRepository implements BookRepository {
