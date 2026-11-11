@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\BookStore.Application\BookStore.Application.csproj" />
     <ProjectReference Include="..\..\src\BookStore.Infrastructure\BookStore.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BookStore.Api\BookStore.Api.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -64,7 +64,7 @@ api/
         Books/                 one file per slice
         Catalog/
     BookStore.Infrastructure/  EF Core, seeding, Open Library client
-    BookStore.Api/             endpoints, error handling, startup
+    BookStore.Api/             FastEndpoints endpoints and validators, error handling, startup
   tests/
     BookStore.Tests/
 
@@ -83,6 +83,7 @@ The raw SQL genre count query is in `api/src/BookStore.Application/Features/Book
 
 - **MediatR 12.5.0:** the last Apache-2.0 version, so there is no commercial license concern.
 - **Vertical slices:** they live inside the Application layer, with one file per slice (request + handler).
+- **FastEndpoints:** I use it for the BFF API (one class per endpoint, REPR pattern). Endpoints stay thin and dispatch to MediatR handlers in the Application layer.
 - **No generic repository:** handlers use `IAppDbContext` directly instead of a generic repository over EF Core.
 - **`EnsureCreated`:** I used it instead of migrations to keep setup simple.
 - **Price as double:** it is stored as a double in SQLite so sorting by price works.
