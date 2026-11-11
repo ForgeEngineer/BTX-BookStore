@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using BookStore.Api;
 using BookStore.Application;
 using BookStore.Infrastructure;
+using FastEndpoints;
 using Serilog;
 using Serilog.Events;
 
@@ -23,9 +24,9 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .AllowAnyMethod()));
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ExceptionHandler>();
+builder.Services.AddFastEndpoints();
 
 var app = builder.Build();
 
@@ -40,6 +41,6 @@ using (var scope = app.Services.CreateScope())
     await DatabaseSeeder.SeedAsync(db, timeProvider);
 }
 
-app.MapBookEndpoints();
+app.UseFastEndpoints(c => c.Errors.UseProblemDetails());
 
 app.Run();
