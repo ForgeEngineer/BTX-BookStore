@@ -7,8 +7,6 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(BookStoreDbContext db, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
-        await db.Database.EnsureCreatedAsync(cancellationToken);
-
         if (await db.Books.AnyAsync(cancellationToken))
             return;
 

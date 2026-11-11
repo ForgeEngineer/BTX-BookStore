@@ -10,7 +10,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<BookStoreDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("Default")));
+            options.UseNpgsql(configuration.GetConnectionString("BookStore")));
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<BookStoreDbContext>());
 
         services.AddHttpClient<IBookCatalog, OpenLibraryClient>(client =>

@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: bookstore
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: bookstore
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookstore -d bookstore"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      ConnectionStrings__BookStore: Host=db;Port=5432;Database=bookstore;Username=bookstore;Password=bookstore;GSS Encryption Mode=Disable
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
+    ports:
+      - "5090:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      lgtm:
+        condition: service_started
+
+  web:
+    build: ./web
+    ports:
+      - "8090:80"
+    depends_on:
+      - api
+
+  lgtm:
+    image: grafana/otel-lgtm:0.40.0
+    ports:
+      - "3100:3000"
+      - "14317:4317"
+      - "14318:4318"
+
+volumes:
+  pgdata:
