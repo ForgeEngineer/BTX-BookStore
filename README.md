@@ -69,6 +69,63 @@ dotnet tool restore
 dotnet ef migrations add <Name> -p src/BookStore.Infrastructure -s src/BookStore.Api -o Migrations
 ```
 
+## Deploy to AWS
+
+### Architecture
+
+```
+browser -> CloudFront -> S3                     Angular app (private bucket, Origin Access Control)
+browser -> CloudFront /api/* -> ALB -> ECS Fargate (API) -> RDS PostgreSQL
+                                       ECS Fargate (API) -> Open Library
+```
+
+- One CDK stack (`BookStoreStack`, C#) in `infra/`, deployed to us-east-1.
+- VPC with 2 AZs, public and isolated subnets, no NAT gateway.
+- The API task runs in a public subnet with a public IP so it can reach Open Library and pull its image. It only accepts traffic from the ALB, and the ALB only accepts traffic from CloudFront.
+- RDS PostgreSQL 17 (db.t4g.micro, 20 GB, single AZ) runs in the isolated subnets and only accepts traffic from the API task. Its credentials are generated in Secrets Manager, and the password reaches the task as an ECS secret.
+- A CloudFront Function rewrites non-file paths to `/index.html` for SPA routing, so API 404s are not touched.
+- A reviewer IAM user `btx-reviewer` gets read-only console access until 2026-11-25.
+
+### Prerequisites
+
+- AWS CLI with a `bookstore` profile for an account bootstrapped with CDK in us-east-1
+- Docker running (the API image is built locally and pushed by CDK)
+- .NET 10 SDK and Node.js
+
+### Deploy
+
+```
+./infra/deploy.ps1
+```
+
+It builds the Angular app for production and runs `cdk deploy --profile bookstore`. When it finishes, it prints these outputs:
+
+- `CloudFrontUrl`: the app
+- `ConsoleSignInUrl`: the console sign-in page for the reviewer
+- `ReviewerPasswordSecretName`: the secret that holds the reviewer's first password
+
+Read the reviewer password:
+
+```
+aws secretsmanager get-secret-value --secret-id <ReviewerPasswordSecretName> --query SecretString --output text --profile bookstore --region us-east-1
+```
+
+The reviewer signs in as `btx-reviewer` and must change the password on first sign-in.
+
+### Destroy
+
+```
+./infra/destroy.ps1
+```
+
+It runs `cdk destroy --profile bookstore --force` and removes every resource in the stack, including the database (no final snapshot), the bucket and its objects, and the API logs. The CDK helper Lambdas (S3 auto-delete, default security group cleanup) can leave small `/aws/lambda/BookStoreStack-*` log groups behind. They cost almost nothing and can be deleted in the console. The CDK bootstrap bucket and ECR repository also keep the uploaded assets.
+
+### Cost
+
+- There is no NAT gateway, which would be the biggest fixed cost.
+- The ALB, the RDS instance, the Fargate task and the public IPv4 addresses bill by the hour whether or not anyone uses the app.
+- Destroy the stack after the demo.
+
 ## Tests
 
 ```
@@ -104,6 +161,11 @@ web/src/app/
   infrastructure/              HTTP repositories, API URL
   ui/                          header, body, footer, book-dialog
 
+infra/
+  src/BookStore.Infra/         CDK app and BookStoreStack
+  deploy.ps1, destroy.ps1
+
+.github/workflows/ci.yml       CI pipeline
 docker-compose.yml             db, api, web, lgtm
 ```
 
@@ -121,6 +183,8 @@ The genre count query is the PostgreSQL function `get_genre_counts()`, created i
 - **EF migrations:** the schema and the stored function are created by migrations, applied on startup before seeding. `dotnet-ef` is a local tool in `api/dotnet-tools.json`.
 - **Containers:** the API and the web app have multi-stage Dockerfiles. The API runs as a non-root user on port 8080. nginx serves the Angular app and proxies `/api` to the API, so the web app uses the relative path `/api` and CORS is not needed.
 - **OpenTelemetry:** the API sends traces (ASP.NET Core, HttpClient, Npgsql), metrics (ASP.NET Core, HttpClient, runtime) and logs over OTLP to the Grafana LGTM stack. Serilog still writes to the console and forwards its logs to OpenTelemetry.
+- **AWS with CDK in C#:** the infrastructure is in the same language as the API. It is sized for the lowest cost that still looks like a real setup, and everything is removed by `cdk destroy`.
+- **CI:** GitHub Actions runs on every push and pull request. It builds and tests the API, builds and tests the web app, builds both Docker images and runs `cdk synth`. It needs no AWS credentials and does not deploy.
 - **Tests on SQLite:** the handler tests use SQLite in memory, so they run without a database server.
 - **Open Library:** it sits behind `IBookCatalog` and is proxied by the API, with a timeout and a 503 when it is unavailable. Search results are never saved.
 - **Shared state:** Header and Body are siblings, so they share state through a root-provided signal store (`BookStore`) instead of inputs/outputs.
