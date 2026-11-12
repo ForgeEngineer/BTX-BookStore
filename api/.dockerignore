@@ -3,5 +3,3 @@
 **/.vs
 **/*.user
 tests
-Dockerfile
-.dockerignore
