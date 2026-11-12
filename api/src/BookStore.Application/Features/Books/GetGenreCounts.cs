@@ -12,6 +12,6 @@ public sealed class GetGenreCountsHandler(IAppDbContext db)
 {
     public async Task<IReadOnlyList<GenreCount>> Handle(GetGenreCountsQuery request, CancellationToken cancellationToken) =>
         await db.Database
-            .SqlQuery<GenreCount>($"SELECT Genre, COUNT(*) AS Count FROM Books GROUP BY Genre")
+            .SqlQuery<GenreCount>($"""SELECT genre AS "Genre", count AS "Count" FROM get_genre_counts()""")
             .ToListAsync(cancellationToken);
 }

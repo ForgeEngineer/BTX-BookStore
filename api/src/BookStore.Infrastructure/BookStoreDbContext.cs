@@ -21,7 +21,7 @@ public sealed class BookStoreDbContext(DbContextOptions<BookStoreDbContext> opti
             book.Property(b => b.CoverUrl).HasMaxLength(Book.CoverUrlMaxLength);
             book.Property(b => b.Description).HasMaxLength(Book.DescriptionMaxLength);
             book.Property(b => b.Genre).HasConversion<string>();
-            book.Property(b => b.Price).HasConversion<double>();
+            book.Property(b => b.Price).HasPrecision(10, 2);
             book.Property(b => b.CreatedAtUtc).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
             book.HasIndex(b => b.OpenLibraryKey).IsUnique();
         });
